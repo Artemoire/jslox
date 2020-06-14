@@ -1,0 +1,322 @@
+const Expr = require('./expr');
+const Stmt = require('./stmt');
+const Token = require('../token');
+const TokenType = require('../token-type');
+const utils = require('../utils');
+
+class Parser {
+
+    /**
+     * 
+     * @param {Token[]} tokens 
+     */
+    constructor(tokens) {
+        this.tokens = tokens;
+        this.current = 0;
+    }
+
+    /**
+     * program → declaration* EOF ;
+     */
+    parse() {
+        var stmts = [];
+        while (!this.isAtEnd()) {
+            stmts.push(this.declaration())
+        }
+
+        return stmts;
+    }
+
+    /**
+     * declaration → varDecl
+     *             | statement ;
+     */
+    declaration() {
+        try {
+            if (this.match(TokenType.VAR)) return this.varDeclaration();
+
+            return this.statement();
+        } catch (err) {
+            this.synchronize();
+            return null;
+        }
+    }
+
+    /**
+     * varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
+     */
+    varDeclaration() {
+        var name = this.consume(TokenType.IDENTIFIER, "Expect variable name.");
+        var initializer = null
+        if (this.match(TokenType.EQUAL)) {
+            initializer = this.expression();
+        }
+
+        this.consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
+        return new Stmt.Var(name, initializer);
+    }
+
+
+
+    /**
+     * statement → exprStmt
+     *           | ifStmt
+     *           | printStmt 
+     *           | block ;
+     */
+    statement() {
+        if (this.match(TokenType.IF)) return this.ifStatement();
+        if (this.match(TokenType.PRINT)) return this.printStatement();
+        if (this.match(TokenType.LEFT_BRACE)) return new Stmt.Block(this.block());
+
+        return this.expressionStatement();
+    }
+
+    /**
+     * ifStmt → "if" "(" expression ")" statement ( "else" statement )? ;
+     */
+    ifStatement() {
+        this.consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.")
+        var condition = this.expression();
+        this.consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.")
+
+        var thenBranch = this.statement();
+        var elseBranch = null;
+
+        if (this.match(TokenType.ELSE)) {
+            elseBranch = this.statement();
+        }
+
+        return new Stmt.If(condition, thenBranch, elseBranch);
+    }
+
+    /**
+     * printStmt → "print" expression ";" ;
+     */
+    printStatement() {
+        var value = this.expression();
+        this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
+        return new Stmt.Print(value);
+    }
+
+    /**
+     * exprStmt  → expression ";" ;
+     */
+    expressionStatement() {
+        var expr = this.expression();
+        this.consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+        return new Stmt.Expression(expr);
+    }
+
+    block() {
+        var stmts = [];
+
+        while (!this.check(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
+            stmts.push(this.declaration());
+        }
+
+        this.consume(TokenType.RIGHT_BRACE, "Expect '}' after block");
+        return stmts;
+    }
+
+    /**
+     * expression → assignment ;
+     */
+    expression() {
+        return this.assignment();
+    }
+
+    /**
+     * assignment → IDENTIFIER "=" assignment
+     *            | equality ;
+     */
+    assignment() {
+        var expr = this.equality();
+
+        if (this.match(TokenType.EQUAL)) {
+            var equals = this.previous();
+            var value = this.assignment();
+
+            if (expr instanceof Expr.Variable) {
+                var name = expr.name;
+                return new Expr.Assign(name, value);
+            }
+
+            this.error(equals, "Invalid assignment target.");
+        }
+
+        return expr;
+    }
+
+    /**
+     * equality → comparison ( ( "!=" | "==" ) comparison )* ;
+     */
+    equality() {
+        var expr = this.comparison();
+
+        while (this.match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL)) {
+            var operator = this.previous();
+            var right = this.comparison();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    /**
+     * comparison → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
+     */
+    comparison() {
+        var expr = this.addition();
+
+        while (this.match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL)) {
+            var operator = this.previous();
+            var right = this.addition();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    /**
+     * addition → multiplication ( ( "-" | "+" ) multiplication )* ;
+     */
+    addition() {
+        var expr = this.multiplication();
+
+        while (this.match(TokenType.MINUS, TokenType.PLUS)) {
+            var operator = this.previous();
+            var right = this.multiplication();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    /**
+     * multiplication → unary ( ( "/" | "*" ) unary )* ;
+     */
+    multiplication() {
+        var expr = this.unary();
+
+        while (this.match(TokenType.SLASH, TokenType.STAR)) {
+            var operator = this.previous();
+            var right = this.unary();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    /**
+     * unary → ( "!" | "-" ) unary
+     *       | primary ;
+     */
+    unary() {
+        if (this.match(TokenType.BANG, TokenType.MINUS)) {
+            var operator = this.previous();
+            var right = this.unary();
+            return new Expr.Unary(operator, right);
+        }
+
+        return this.primary();
+    }
+
+    /**
+     * primary → "true" | "false" | "nil"
+     *         | NUMBER | STRING
+     *         | "(" expression ")" ;
+     *         | IDENTIFIER
+     */
+    primary() {
+        if (this.match(TokenType.FALSE)) return new Expr.Literal(false);
+        if (this.match(TokenType.TRUE)) return new Expr.Literal(true);
+        if (this.match(TokenType.NIL)) return new Expr.Literal(null);
+
+        if (this.match(TokenType.NUMBER, TokenType.STRING)) {
+            return new Expr.Literal(this.previous().literal);
+        }
+
+        if (this.match(TokenType.IDENTIFIER)) {
+            return new Expr.Variable(this.previous());
+        }
+
+        if (this.match(TokenType.LEFT_PAREN)) {
+            var expr = expression();
+            this.consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
+            return new Expr.Grouping(expr);
+        }
+
+        throw this.error(this.peek(), "Expect expression.");
+    }
+
+    match(...tokenTypes) {
+        for (const ttype of tokenTypes) {
+            if (this.check(ttype)) {
+                this.advance();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    check(tokenType) {
+        return (this.isAtEnd() ? false : (this.peek().type == tokenType));
+    }
+
+    isAtEnd() {
+        return (this.peek().type == TokenType.EOF);
+    }
+
+    advance() {
+        if (!this.isAtEnd()) {
+            this.current++;
+        }
+        return this.previous();
+    }
+
+    peek() {
+        return this.tokens[this.current];
+    }
+
+    previous() {
+        return this.tokens[this.current - 1];
+    }
+
+    consume(tokenType, errorMsg) {
+        if (this.check(tokenType)) return this.advance();
+
+        throw this.error(this.peek(), errorMsg)
+    }
+
+    synchronize() {
+        this.advance();
+
+        while (!this.isAtEnd()) {
+            if (this.previous().type == TokenType.SEMICOLON) return;
+
+            switch (this.peek().type) {
+                case TokenType.CLASS:
+                case TokenType.FUN:
+                case TokenType.VAR:
+                case TokenType.FOR:
+                case TokenType.IF:
+                case TokenType.WHILE:
+                case TokenType.PRINT:
+                case TokenType.RETURN:
+                    return;
+            }
+
+            this.advance();
+        }
+    }
+
+    error(token, msg) {
+        utils.loxParseError(token, msg);
+        return "ParseError";
+    }
+
+}
+
+module.exports = Parser;

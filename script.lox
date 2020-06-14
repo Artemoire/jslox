@@ -1,0 +1,10 @@
+var a = 1;
+{
+  var a = a + 2;
+  print a;
+}
+if (a == 3) {
+    print "yay";
+} else {
+    print "a: "+ a;
+}
