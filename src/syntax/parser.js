@@ -128,10 +128,10 @@ class Parser {
 
     /**
      * assignment → IDENTIFIER "=" assignment
-     *            | equality ;
+     *            | logic_or ;
      */
     assignment() {
-        var expr = this.equality();
+        var expr = this.logic_or();
 
         if (this.match(TokenType.EQUAL)) {
             var equals = this.previous();
@@ -143,6 +143,36 @@ class Parser {
             }
 
             this.error(equals, "Invalid assignment target.");
+        }
+
+        return expr;
+    }
+
+    /**
+     * logic_or → logic_and ( "or" logic_and )* ;
+     */
+    logic_or() {
+        var expr = this.logic_and();
+
+        while(this.match(TokenType.OR)) {
+            var operator = this.previous();
+            var right = this.logic_and();
+            expr = new Expr.Logical(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    /**
+     * logic_and → equality ( "and" equality )* ;
+     */
+    logic_and() {
+        var expr = this.equality();
+
+        while(this.match(TokenType.AND)) {
+            var operator = this.previous;
+            var right = this.equality();
+            expr = new Expr.Logical(expr, operator, right);
         }
 
         return expr;

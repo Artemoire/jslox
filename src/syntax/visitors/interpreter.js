@@ -170,6 +170,21 @@ class Interpreter {
         return this.env.get(expr.name);
     }
 
+    /**
+     * @param {Expr.Logical} expr 
+     */
+    visitLogicalExpr(expr) {
+        var left = this.evaluate(expr.left);
+
+        if (expr.operator.type == TokenType.OR) {
+            if (this.isTruthy(left)) return left;
+        } else {
+            if (!this.isTruthy(left)) return left;
+        }
+
+        return this.evaluate(expr.right);
+    }
+
     checkNumberOperand(operator, op) {
         if (typeof op == "number") return;
 

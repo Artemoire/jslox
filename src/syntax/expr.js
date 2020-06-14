@@ -88,6 +88,29 @@ class Literal extends Expr {
 
 }
 
+class Logical extends Expr {
+
+	/**
+	 * @param {Expr} left
+	 * @param {Token} operator
+	 * @param {Expr} right
+	 */
+	constructor(left, operator, right) {
+		super();
+		this.left = left;
+		this.operator = operator;
+		this.right = right;
+	}
+
+	/**
+	 * @param {Visitor} visitor
+	 */
+	accept(visitor) {
+		return visitor.visitLogicalExpr(this);
+	}
+
+}
+
 class Unary extends Expr {
 
 	/**
@@ -132,6 +155,7 @@ Expr.Assign = Assign;
 Expr.Binary = Binary;
 Expr.Grouping = Grouping;
 Expr.Literal = Literal;
+Expr.Logical = Logical;
 Expr.Unary = Unary;
 Expr.Variable = Variable;
 
@@ -147,6 +171,9 @@ class Visitor {
 	}
 
 	visitLiteralExpr(expr) {
+	}
+
+	visitLogicalExpr(expr) {
 	}
 
 	visitUnaryExpr(expr) {
