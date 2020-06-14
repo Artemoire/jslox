@@ -60,12 +60,14 @@ class Parser {
 
     /**
      * statement → exprStmt
+     *           | forStmt
      *           | ifStmt
      *           | printStmt 
      *           | whileStmt
      *           | block ;
      */
     statement() {
+        if (this.match(TokenType.FOR)) return this.forStatement();
         if (this.match(TokenType.IF)) return this.ifStatement();
         if (this.match(TokenType.PRINT)) return this.printStatement();
         if (this.match(TokenType.WHILE)) return this.whileStatement();
@@ -74,6 +76,50 @@ class Parser {
         return this.expressionStatement();
     }
 
+    /**
+     * forStmt   → "for" "(" ( varDecl | exprStmt | ";" )
+     *           | expression? ";"
+     *           | expression? ")" statement ;
+     */
+    forStatement() {
+        this.consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.");
+        var initializer;
+        if (this.match(TokenType.SEMICOLON)) {
+            initializer = null;
+        } else if (this.match(TokenType.VAR)) {
+            initializer = this.varDeclaration();
+        } else {
+            initializer = this.expressionStatement();
+        }
+
+        var condition = null;
+        if (!this.check(TokenType.SEMICOLON)) {
+            condition = this.expression();
+        }
+        this.consume(TokenType.SEMICOLON, "Expect ';' after loop condition");
+
+        var increment = null;
+        if (!this.check(TokenType.RIGHT_PAREN)) {
+            increment = this.expression();
+        }
+        this.consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses");
+
+        var body = this.statement();
+
+        if (increment != null) {
+            body = new Stmt.Block([body, new Stmt.Expression(increment)]);
+        }
+
+        if (condition == null) condition = new Expr.Literal(true);
+        body = new Stmt.While(condition, body);
+
+        if (initializer != null) {
+            body = new Stmt.Block([initializer, body]);
+        }
+
+        return body;
+    }
+    
     /**
      * ifStmt → "if" "(" expression ")" statement ( "else" statement )? ;
      */
