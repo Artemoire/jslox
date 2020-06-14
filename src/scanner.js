@@ -156,7 +156,9 @@ class Scanner {
     }
 
     addToken(type, literal) {
-        literal = literal || null;
+        if (typeof literal == "undefined") {
+            literal = null;
+        }
         var text = this.source.substring(this.start, this.current);
         this.tokens.push(new Token(type, text, literal, this.line));
     }

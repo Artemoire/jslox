@@ -62,11 +62,13 @@ class Parser {
      * statement → exprStmt
      *           | ifStmt
      *           | printStmt 
+     *           | whileStmt
      *           | block ;
      */
     statement() {
         if (this.match(TokenType.IF)) return this.ifStatement();
         if (this.match(TokenType.PRINT)) return this.printStatement();
+        if (this.match(TokenType.WHILE)) return this.whileStatement();
         if (this.match(TokenType.LEFT_BRACE)) return new Stmt.Block(this.block());
 
         return this.expressionStatement();
@@ -97,6 +99,19 @@ class Parser {
         var value = this.expression();
         this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
         return new Stmt.Print(value);
+    }
+
+    /**
+     * whileStmt → "while" "(" expression ")" statement ;
+     */
+    whileStatement() {
+        this.consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.");
+        var condition = this.expression();
+        this.consume(TokenType.RIGHT_PAREN, "Expect ')' after 'while' condition.");
+
+        var body = this.statement();
+
+        return new Stmt.While(condition, body);
     }
 
     /**

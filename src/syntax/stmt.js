@@ -108,11 +108,33 @@ class Var extends Stmt {
 
 }
 
+class While extends Stmt {
+
+	/**
+	 * @param {Expr} condition
+	 * @param {Stmt} body
+	 */
+	constructor(condition, body) {
+		super();
+		this.condition = condition;
+		this.body = body;
+	}
+
+	/**
+	 * @param {Visitor} visitor
+	 */
+	accept(visitor) {
+		return visitor.visitWhileStmt(this);
+	}
+
+}
+
 Stmt.Block = Block;
 Stmt.Expression = Expression;
 Stmt.If = If;
 Stmt.Print = Print;
 Stmt.Var = Var;
+Stmt.While = While;
 
 class Visitor {
 
@@ -129,6 +151,9 @@ class Visitor {
 	}
 
 	visitVarStmt(stmt) {
+	}
+
+	visitWhileStmt(stmt) {
 	}
 
 }

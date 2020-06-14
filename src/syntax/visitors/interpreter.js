@@ -239,6 +239,17 @@ class Interpreter {
     }
 
     /**
+     * @param {Stmt.While} stmt 
+     */
+    visitWhileStmt(stmt) {
+        while(this.isTruthy(this.evaluate(stmt.condition))) {
+            this.execute(stmt.body);
+        }
+        
+        return null;
+    }
+
+    /**
      * @param {Expr.Assign} expr 
      */
     visitAssignExpr(expr) {
