@@ -1,2 +1,12 @@
-var a = clock();
-print a;
+var time = clock();
+
+fun count(n) {
+  if (n > 1) count(n - 1);
+  print n;
+}
+
+count(10);
+
+time = clock() - time;
+
+print "took " + time + "s";

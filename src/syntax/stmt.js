@@ -45,6 +45,29 @@ class Expression extends Stmt {
 
 }
 
+class Function extends Stmt {
+
+	/**
+	 * @param {Token} name
+	 * @param {Token[]} params
+	 * @param {Stmt[]} body
+	 */
+	constructor(name, params, body) {
+		super();
+		this.name = name;
+		this.params = params;
+		this.body = body;
+	}
+
+	/**
+	 * @param {Visitor} visitor
+	 */
+	accept(visitor) {
+		return visitor.visitFunctionStmt(this);
+	}
+
+}
+
 class If extends Stmt {
 
 	/**
@@ -131,6 +154,7 @@ class While extends Stmt {
 
 Stmt.Block = Block;
 Stmt.Expression = Expression;
+Stmt.Function = Function;
 Stmt.If = If;
 Stmt.Print = Print;
 Stmt.Var = Var;
@@ -142,6 +166,9 @@ class Visitor {
 	}
 
 	visitExpressionStmt(stmt) {
+	}
+
+	visitFunctionStmt(stmt) {
 	}
 
 	visitIfStmt(stmt) {

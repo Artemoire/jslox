@@ -1,3 +1,8 @@
+const Stmt = require("../syntax/stmt");
+const Env = require("./env");
+const Interpreter = require("../syntax/visitors/interpreter");
+const Token = require("../token");
+
 class Callable {
 
     arity() {
@@ -24,5 +29,41 @@ class NativeClock extends Callable {
     }
 }
 Callable.NativeClock = NativeClock;
+
+class LoxFunction extends Callable {
+
+    /**
+     * @param {Stmt.Function} decl 
+     */
+    constructor(decl) {
+        super();
+        this.decl = decl;
+    }
+
+    arity() {
+        return this.decl.params.length;
+    }
+
+    /**
+     * 
+     * @param {Interpreter} interpreter 
+     * @param {any[]} args 
+     */
+    call(interpreter, args) {
+        // TODO
+        var env = new Env(interpreter.globals);
+        for (var i = 0; i < args.length; ++i) {
+            env.define(this.decl.params[i].lexeme, args[i]);
+        }
+
+        interpreter.executeBlock(this.decl.body, env);
+        return null;
+    }
+
+    toString() {
+        return `<fn ${this.decl.name.lexeme}>`;
+    }
+}
+Callable.LoxFunction = LoxFunction;
 
 module.exports = Callable;

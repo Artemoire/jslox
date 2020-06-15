@@ -28,11 +28,13 @@ class Parser {
     }
 
     /**
-     * declaration → varDecl
+     * declaration → funDecl
+     *             | varDecl
      *             | statement ;
      */
     declaration() {
         try {
+            if (this.match(TokenType.FUN)) return this.fun("function");
             if (this.match(TokenType.VAR)) return this.varDeclaration();
 
             return this.statement();
@@ -40,6 +42,33 @@ class Parser {
             this.synchronize();
             return null;
         }
+    }
+
+    /**
+     * funDecl → "fun" function ;
+     * function → IDENTIFIER "(" parameters? ")" block ;
+     * parameters → IDENTIFIER ( "," IDENTIFIER )* ;
+     */
+    fun(kind) {
+        var name = this.consume(TokenType.IDENTIFIER, `Expect ${kind} name.`);
+
+        this.consume(TokenType.LEFT_PAREN, `Expect '(' after ${kind} name.`);
+        var params = [];
+        if (!this.check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (params.length >= 255) {
+                    this.error(this.peek(), "Cannot have more than 255 params.");
+                }
+                params.push(this.consume(TokenType.IDENTIFIER, "Expect parameter name."));
+            } while (this.match(TokenType.COMMA));
+        }
+        this.consume(TokenType.RIGHT_PAREN, `Expect ')' after parameters.`);
+
+        this.consume(TokenType.LEFT_BRACE, `Expect '{' before ${kind} body.`);
+
+        var body = this.block();
+
+        return new Stmt.Function(name, params, body);
     }
 
     /**

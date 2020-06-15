@@ -14,6 +14,7 @@ defineAst(outputDir, "Expr", [
 defineAst(outputDir, "Stmt", [
     "Block      : Stmt[] statements",
     "Expression : Expr expression",
+    "Function   : Token name, Token[] params, Stmt[] body",
     "If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
     "Print      : Expr expression",
     "Var        : Token name, Expr initializer",

@@ -236,7 +236,7 @@ class Interpreter {
     visitIfStmt(stmt) {
         if (this.isTruthy(this.evaluate(stmt.condition))) {
             this.execute(stmt.thenBranch);
-        } else {
+        } else if (stmt.elseBranch != null) {
             this.execute(stmt.elseBranch);
         }
         return null;
@@ -272,6 +272,15 @@ class Interpreter {
             this.execute(stmt.body);
         }
 
+        return null;
+    }
+
+    /**
+     * @param {Stmt.Function} stmt 
+     */
+    visitFunctionStmt(stmt) {
+        var fun = new Callable.LoxFunction(stmt);
+        this.env.define(stmt.name.lexeme, fun);
         return null;
     }
 
