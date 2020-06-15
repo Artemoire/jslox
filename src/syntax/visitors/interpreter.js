@@ -3,11 +3,15 @@ const Stmt = require("../stmt");
 const TokenType = require("../../token-type");
 const utils = require("../../utils");
 const Env = require("../../vm/env");
+const Callable = require("../../vm/callable");
 
 class Interpreter {
 
     constructor() {
-        this.env = new Env();
+        this.globals = new Env();
+        this.env = this.globals;
+
+        this.globals.define("clock", new Callable.NativeClock());
     }
 
     /**
@@ -185,6 +189,28 @@ class Interpreter {
         return this.evaluate(expr.right);
     }
 
+    /**
+     * @param {Expr.Call} expr 
+     */
+    visitCallExpr(expr) {
+        var callee = this.evaluate(expr.callee);
+
+        var args = [];
+        for (const arg of expr.args) {
+            args.push(this.evaluate(arg));
+        }
+
+        if (!(callee instanceof Callable)) {
+            throw { token: expr.paren, msg: "Can only call functions and classes." };
+        }
+
+        if (args.length != callee.arity()) {
+            throw { token: expr.paren, msg: `Expected ${callee.arity()} arguments but got ${args.length}.` };
+        }
+
+        return callee.call(this, args);
+    }
+
     checkNumberOperand(operator, op) {
         if (typeof op == "number") return;
 
@@ -242,10 +268,10 @@ class Interpreter {
      * @param {Stmt.While} stmt 
      */
     visitWhileStmt(stmt) {
-        while(this.isTruthy(this.evaluate(stmt.condition))) {
+        while (this.isTruthy(this.evaluate(stmt.condition))) {
             this.execute(stmt.body);
         }
-        
+
         return null;
     }
 

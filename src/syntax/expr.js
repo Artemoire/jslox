@@ -50,6 +50,29 @@ class Binary extends Expr {
 
 }
 
+class Call extends Expr {
+
+	/**
+	 * @param {Expr} callee
+	 * @param {Token} paren
+	 * @param {Expr[]} args
+	 */
+	constructor(callee, paren, args) {
+		super();
+		this.callee = callee;
+		this.paren = paren;
+		this.args = args;
+	}
+
+	/**
+	 * @param {Visitor} visitor
+	 */
+	accept(visitor) {
+		return visitor.visitCallExpr(this);
+	}
+
+}
+
 class Grouping extends Expr {
 
 	/**
@@ -153,6 +176,7 @@ class Variable extends Expr {
 
 Expr.Assign = Assign;
 Expr.Binary = Binary;
+Expr.Call = Call;
 Expr.Grouping = Grouping;
 Expr.Literal = Literal;
 Expr.Logical = Logical;
@@ -165,6 +189,9 @@ class Visitor {
 	}
 
 	visitBinaryExpr(expr) {
+	}
+
+	visitCallExpr(expr) {
 	}
 
 	visitGroupingExpr(expr) {

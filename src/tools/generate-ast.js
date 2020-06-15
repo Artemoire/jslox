@@ -3,6 +3,7 @@ var outputDir = "src/syntax";
 defineAst(outputDir, "Expr", [
     "Assign   : Token name, Expr value",
     "Binary   : Expr left, Token operator, Expr right",
+    "Call     : Expr callee, Token paren, Expr[] args",
     "Grouping : Expr expression",
     "Literal  : Object value",
     "Logical  : Expr left, Token operator, Expr right",
@@ -16,7 +17,7 @@ defineAst(outputDir, "Stmt", [
     "If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
     "Print      : Expr expression",
     "Var        : Token name, Expr initializer",
-    "While      : Expr condition, Stmt body" 
+    "While      : Expr condition, Stmt body"
 ], `const Expr = require("./expr")\n`);
 
 function defineAst(outputDir, baseName, types, prefix) {

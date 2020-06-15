@@ -119,7 +119,7 @@ class Parser {
 
         return body;
     }
-    
+
     /**
      * ifStmt → "if" "(" expression ")" statement ( "else" statement )? ;
      */
@@ -215,7 +215,7 @@ class Parser {
     logic_or() {
         var expr = this.logic_and();
 
-        while(this.match(TokenType.OR)) {
+        while (this.match(TokenType.OR)) {
             var operator = this.previous();
             var right = this.logic_and();
             expr = new Expr.Logical(expr, operator, right);
@@ -230,7 +230,7 @@ class Parser {
     logic_and() {
         var expr = this.equality();
 
-        while(this.match(TokenType.AND)) {
+        while (this.match(TokenType.AND)) {
             var operator = this.previous;
             var right = this.equality();
             expr = new Expr.Logical(expr, operator, right);
@@ -301,7 +301,7 @@ class Parser {
 
     /**
      * unary → ( "!" | "-" ) unary
-     *       | primary ;
+     *       | call ;
      */
     unary() {
         if (this.match(TokenType.BANG, TokenType.MINUS)) {
@@ -310,8 +310,47 @@ class Parser {
             return new Expr.Unary(operator, right);
         }
 
-        return this.primary();
+        return this.call();
     }
+
+    /**
+     * call → primary ( "(" arguments? ")" )* ;
+     */
+    call() {
+        var expr = this.primary();
+
+        while (true) {
+            if (this.match(TokenType.LEFT_PAREN)) {
+                expr = this.finishCall(expr);
+            } else {
+                break;
+            }
+        }
+
+        return expr;
+    }
+
+    finishCall(callee) {
+        var args = [];
+        if (!this.check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (args.length >= 255) {
+                    this.error(this.peek(), "Cannot have more than 255 arguments.");
+                }
+                args.push(this.expression());
+            } while (this.match(TokenType.COMMA));
+        }
+
+        var paren = this.consume(TokenType.RIGHT_PAREN, "Expect ')' after arguments.");
+
+        return new Expr.Call(callee, paren, args);
+    }
+    // /**
+    //  * arguments → expression ( "," expression )* ;
+    //  */
+    // args() {
+
+    // }
 
     /**
      * primary → "true" | "false" | "nil"
