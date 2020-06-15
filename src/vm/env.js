@@ -12,6 +12,26 @@ class Env {
         this.values[name] = value;
     }
 
+    /**
+     * @param {number} dist 
+     */
+    ancestor(dist) {
+        var env = this;
+
+        for (var i = 0; i < dist; ++i) {
+            env = env.enclosing;
+        }
+
+        return env;
+    }
+
+    /**
+     * @param {number} dist 
+     * @param {Token} name 
+     */
+    getAt(dist, name) {
+        return this.ancestor(dist).values[name.lexeme];
+    }
 
     /**
      * @param {Token} name 
@@ -24,6 +44,15 @@ class Env {
         if (this.enclosing != null) return this.enclosing.get(name);
 
         throw { token: name, msg: `Undefined variable '${name.lexeme}'.` }
+    }
+
+    /**
+     * @param {number} dist 
+     * @param {Token} name 
+     * @param {*} value 
+     */
+    assignAt(dist, name, value) {
+        this.ancestor(dist).values[name.lexeme] = value;
     }
 
     /**

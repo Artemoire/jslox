@@ -1,3 +1,5 @@
+const TokenType = require("./token-type");
+
 var hadError = false;
 var hadRuntimeError = false;
 

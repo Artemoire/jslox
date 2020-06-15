@@ -1,5 +1,6 @@
 const Parser = require('./syntax/parser');
 const Interpreter = require('./syntax/visitors/interpreter');
+const Resolver = require('./syntax/visitors/resolver')
 const ASTPrinter = require('./syntax/visitors/ast-printer');
 const Scanner = require("./scanner");
 const utils = require('./utils');
@@ -61,6 +62,11 @@ function run(source) {
     var tokens = scanner.scanTokens();
     var parser = new Parser(tokens);
     var stmts = parser.parse();
+
+    if (utils.hadError) return;
+
+    var resolver = new Resolver(interpreter);
+    resolver.resolveStmts(stmts);
 
     if (utils.hadError) return;
 

@@ -10,6 +10,7 @@ class Interpreter {
 
     constructor() {
         this.globals = new Env();
+        this.locals = new WeakMap();
         this.env = this.globals;
 
         this.globals.define("clock", new Callable.NativeClock());
@@ -39,6 +40,14 @@ class Interpreter {
      */
     execute(stmt) {
         stmt.accept(this);
+    }
+
+    /**
+     * @param {Expr} expr 
+     * @param {number} depth 
+     */
+    resolve(expr, depth) {
+        this.locals.set(expr, depth);
     }
 
     /**
@@ -172,7 +181,20 @@ class Interpreter {
      * @param {Expr.Variable} expr 
      */
     visitVariableExpr(expr) {
-        return this.env.get(expr.name);
+        return this.lookUpVariable(expr.name, expr);
+    }
+
+    /**
+     * @param {Token} name 
+     * @param {Expr} expr 
+     */
+    lookUpVariable(name, expr) {
+        var dist = this.locals.get(expr);
+        if (typeof dist != "undefined") {
+            return this.env.getAt(dist, name);
+        } else {
+            return this.globals.get(name);
+        }
     }
 
     /**
@@ -303,7 +325,13 @@ class Interpreter {
     visitAssignExpr(expr) {
         var value = this.evaluate(expr.value);
 
-        this.env.assign(expr.name, value);
+        var dist = this.locals.get(expr);
+        if (typeof dist != "undefined") {
+            this.env.assignAt(dist, expr.name, value);
+        } else {
+            this.globals.assign(expr.name, value);
+        }
+
         return value;
     }
 
