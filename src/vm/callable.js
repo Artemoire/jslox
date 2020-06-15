@@ -35,10 +35,12 @@ class LoxFunction extends Callable {
 
     /**
      * @param {Stmt.Function} decl 
+     * @param {Env} closure
      */
-    constructor(decl) {
+    constructor(decl, closure) {
         super();
         this.decl = decl;
+        this.closure = closure;
     }
 
     arity() {
@@ -52,7 +54,7 @@ class LoxFunction extends Callable {
      */
     call(interpreter, args) {
         // TODO
-        var env = new Env(interpreter.globals);
+        var env = new Env(this.closure);
         for (var i = 0; i < args.length; ++i) {
             env.define(this.decl.params[i].lexeme, args[i]);
         }

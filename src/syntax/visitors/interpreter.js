@@ -31,7 +31,7 @@ class Interpreter {
 
     stringify(value) {
         if (value == null) return "nil";
-        return value;
+        return value.toString();
     }
 
     /**
@@ -280,7 +280,7 @@ class Interpreter {
      * @param {Stmt.Function} stmt 
      */
     visitFunctionStmt(stmt) {
-        var fun = new Callable.LoxFunction(stmt);
+        var fun = new Callable.LoxFunction(stmt, this.env);
         this.env.define(stmt.name.lexeme, fun);
         return null;
     }
