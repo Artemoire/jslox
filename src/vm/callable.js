@@ -2,6 +2,7 @@ const Stmt = require("../syntax/stmt");
 const Env = require("./env");
 const Interpreter = require("../syntax/visitors/interpreter");
 const Token = require("../token");
+const Ex = require("../vm/exs");
 
 class Callable {
 
@@ -56,7 +57,15 @@ class LoxFunction extends Callable {
             env.define(this.decl.params[i].lexeme, args[i]);
         }
 
-        interpreter.executeBlock(this.decl.body, env);
+        try {
+            interpreter.executeBlock(this.decl.body, env);
+        } catch (err) {
+            if (err instanceof Ex.Return) {
+                return err.value;
+            } else {
+                throw err;
+            }
+        }
         return null;
     }
 

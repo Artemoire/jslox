@@ -110,6 +110,27 @@ class Print extends Stmt {
 
 }
 
+class Return extends Stmt {
+
+	/**
+	 * @param {Token} keyword
+	 * @param {Expr} value
+	 */
+	constructor(keyword, value) {
+		super();
+		this.keyword = keyword;
+		this.value = value;
+	}
+
+	/**
+	 * @param {Visitor} visitor
+	 */
+	accept(visitor) {
+		return visitor.visitReturnStmt(this);
+	}
+
+}
+
 class Var extends Stmt {
 
 	/**
@@ -157,6 +178,7 @@ Stmt.Expression = Expression;
 Stmt.Function = Function;
 Stmt.If = If;
 Stmt.Print = Print;
+Stmt.Return = Return;
 Stmt.Var = Var;
 Stmt.While = While;
 
@@ -175,6 +197,9 @@ class Visitor {
 	}
 
 	visitPrintStmt(stmt) {
+	}
+
+	visitReturnStmt(stmt) {
 	}
 
 	visitVarStmt(stmt) {

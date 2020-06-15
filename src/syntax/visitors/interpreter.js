@@ -3,6 +3,7 @@ const Stmt = require("../stmt");
 const TokenType = require("../../token-type");
 const utils = require("../../utils");
 const Env = require("../../vm/env");
+const Ex = require("../../vm/exs");
 const Callable = require("../../vm/callable");
 
 class Interpreter {
@@ -282,6 +283,18 @@ class Interpreter {
         var fun = new Callable.LoxFunction(stmt);
         this.env.define(stmt.name.lexeme, fun);
         return null;
+    }
+
+    /**
+     * @param {Stmt.Return} stmt 
+     */
+    visitReturnStmt(stmt) {
+        var value = null;
+        if (stmt.value != null) {
+            value = this.evaluate(stmt.value);
+        }
+
+        throw new Ex.Return(value);
     }
 
     /**

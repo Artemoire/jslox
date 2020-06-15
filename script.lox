@@ -1,11 +1,13 @@
 var time = clock();
 
-fun count(n) {
-  if (n > 1) count(n - 1);
-  print n;
+fun fibonacci(n) {
+  if (n <= 1) return n;
+  return fibonacci(n - 2) + fibonacci(n - 1);
 }
 
-count(10);
+for (var i = 0; i < 20; i = i + 1) {
+  print fibonacci(i);
+}
 
 time = clock() - time;
 
