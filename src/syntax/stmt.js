@@ -26,6 +26,27 @@ class Block extends Stmt {
 
 }
 
+class Class extends Stmt {
+
+	/**
+	 * @param {Token} name
+	 * @param {Stmt.Function[]} methods
+	 */
+	constructor(name, methods) {
+		super();
+		this.name = name;
+		this.methods = methods;
+	}
+
+	/**
+	 * @param {Visitor} visitor
+	 */
+	accept(visitor) {
+		return visitor.visitClassStmt(this);
+	}
+
+}
+
 class Expression extends Stmt {
 
 	/**
@@ -174,6 +195,7 @@ class While extends Stmt {
 }
 
 Stmt.Block = Block;
+Stmt.Class = Class;
 Stmt.Expression = Expression;
 Stmt.Function = Function;
 Stmt.If = If;
@@ -185,6 +207,9 @@ Stmt.While = While;
 class Visitor {
 
 	visitBlockStmt(stmt) {
+	}
+
+	visitClassStmt(stmt) {
 	}
 
 	visitExpressionStmt(stmt) {

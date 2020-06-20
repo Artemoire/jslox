@@ -5,6 +5,7 @@ const utils = require("../../utils");
 const Env = require("../../vm/env");
 const Ex = require("../../vm/exs");
 const Callable = require("../../vm/callable");
+const LoxClass = require("../../vm/lox-class");
 
 class Interpreter {
 
@@ -55,6 +56,16 @@ class Interpreter {
      */
     visitBlockStmt(stmt) {
         this.executeBlock(stmt.statements, new Env(this.env));
+        return null;
+    }
+
+    /**
+     * @param {Stmt.Class} stmt 
+     */
+    visitClassStmt(stmt) {
+        this.env.define(stmt.name.lexeme, null);
+        var klass = new LoxClass(stmt.name.lexeme);
+        this.env.assign(stmt.name, klass);
         return null;
     }
 

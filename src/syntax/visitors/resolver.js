@@ -18,6 +18,12 @@ class Resolver {
         this.endScope();
     }
 
+    visitClassStmt(stmt) {
+        this.declare(stmt.name);
+        this.define(stmt.name);
+        return null;
+    }
+
     visitVarStmt(stmt) {
         this.declare(stmt.name);
         if (stmt.initializer != null) {
