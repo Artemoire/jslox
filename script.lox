@@ -1,16 +1,20 @@
 class Cake {
-  assignFlavor(flavor) {
+  init(flavor, val) {
     this.flavor = flavor;
+    if (val) {
+      this.val = "gayy";
+      return;
+    }
+    this.val = "boyy";
   }
 
   taste() {
-    var adjective = "delicious";
+    var adjective = this.val;
     print "The " + this.flavor + " cake is " + adjective + "!";
   }
 }
 
-var cake = Cake();
-cake.assignFlavor("German chocolate");
+var cake = Cake("German chocolate", true);
 cake.taste(); // Prints "The German chocolate cake is delicious!".
 var boundTaste = cake.taste;
 boundTaste();

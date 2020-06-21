@@ -26,10 +26,20 @@ class LoxClass extends Callable {
 
     call(interpreter, args) {
         var instance = new LoxInstance(this);
+
+        var init = this.findMethod("init");
+        if  (init != null) {
+            init.bind(instance).call(interpreter, args);
+        }
+
         return instance;
     }
 
     arity() {
+        var init = this.findMethod("init");
+        if(init != null) {
+            return init.arity();
+        }
         return 0;
     }
 

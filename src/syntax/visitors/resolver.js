@@ -30,7 +30,11 @@ class Resolver {
         this.scopes[this.scopes.length - 1]["this"] = true;
 
         for(var method of stmt.methods) {
-            this.resolveFunction(method, "method");
+            if (method.name.lexeme == "init") {
+                this.resolveFunction(method, "init");
+            } else {
+                this.resolveFunction(method, "method");
+            }
         }
 
         this.endScope();
@@ -80,7 +84,12 @@ class Resolver {
             utils.loxParseError(stmt.keyword, "Cannot return from top-level code.");
         }
 
-        if (stmt.value != null) this.resolve(stmt.value);
+        if (stmt.value != null) {
+            if (this.currentScopeKind== "init") {
+                utils.loxParseError(stmt.keyword, "Cannot return a value from an initializer.");
+            }
+            this.resolve(stmt.value);
+        }
 
         return null;
     }

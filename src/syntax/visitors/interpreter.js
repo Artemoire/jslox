@@ -68,7 +68,7 @@ class Interpreter {
 
         var methods = {};
         for(var method of stmt.methods) {
-            var fun = new LoxFunction(method, this.env);
+            var fun = new LoxFunction(method, this.env, method.name == "init");
             methods[method.name.lexeme] = fun;
         }
 
@@ -352,7 +352,7 @@ class Interpreter {
      * @param {Stmt.Function} stmt 
      */
     visitFunctionStmt(stmt) {
-        var fun = new Callable.LoxFunction(stmt, this.env);
+        var fun = new Callable.LoxFunction(stmt, this.env, false);
         this.env.define(stmt.name.lexeme, fun);
         return null;
     }
