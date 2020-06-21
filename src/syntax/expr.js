@@ -73,6 +73,27 @@ class Call extends Expr {
 
 }
 
+class Get extends Expr {
+
+	/**
+	 * @param {Expr} object
+	 * @param {Token} name
+	 */
+	constructor(object, name) {
+		super();
+		this.object = object;
+		this.name = name;
+	}
+
+	/**
+	 * @param {Visitor} visitor
+	 */
+	accept(visitor) {
+		return visitor.visitGetExpr(this);
+	}
+
+}
+
 class Grouping extends Expr {
 
 	/**
@@ -134,6 +155,48 @@ class Logical extends Expr {
 
 }
 
+class Set extends Expr {
+
+	/**
+	 * @param {Expr} object
+	 * @param {Token} name
+	 * @param {Expr} value
+	 */
+	constructor(object, name, value) {
+		super();
+		this.object = object;
+		this.name = name;
+		this.value = value;
+	}
+
+	/**
+	 * @param {Visitor} visitor
+	 */
+	accept(visitor) {
+		return visitor.visitSetExpr(this);
+	}
+
+}
+
+class This extends Expr {
+
+	/**
+	 * @param {Token} keyword
+	 */
+	constructor(keyword) {
+		super();
+		this.keyword = keyword;
+	}
+
+	/**
+	 * @param {Visitor} visitor
+	 */
+	accept(visitor) {
+		return visitor.visitThisExpr(this);
+	}
+
+}
+
 class Unary extends Expr {
 
 	/**
@@ -177,9 +240,12 @@ class Variable extends Expr {
 Expr.Assign = Assign;
 Expr.Binary = Binary;
 Expr.Call = Call;
+Expr.Get = Get;
 Expr.Grouping = Grouping;
 Expr.Literal = Literal;
 Expr.Logical = Logical;
+Expr.Set = Set;
+Expr.This = This;
 Expr.Unary = Unary;
 Expr.Variable = Variable;
 
@@ -194,6 +260,9 @@ class Visitor {
 	visitCallExpr(expr) {
 	}
 
+	visitGetExpr(expr) {
+	}
+
 	visitGroupingExpr(expr) {
 	}
 
@@ -201,6 +270,12 @@ class Visitor {
 	}
 
 	visitLogicalExpr(expr) {
+	}
+
+	visitSetExpr(expr) {
+	}
+
+	visitThisExpr(expr) {
 	}
 
 	visitUnaryExpr(expr) {

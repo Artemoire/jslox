@@ -43,6 +43,12 @@ class LoxFunction extends Callable {
         this.closure = closure;
     }
 
+    bind(instance) {
+        var env = new Env(this.closure);
+        env.define("this", instance);
+        return new LoxFunction(this.decl, env);
+    }
+
     arity() {
         return this.decl.params.length;
     }

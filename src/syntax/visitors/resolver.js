@@ -1,5 +1,6 @@
 const Interpreter = require('./interpreter');
 const utils = require('../../utils');
+const { THIS } = require('../../token-type');
 
 class Resolver {
 
@@ -21,6 +22,16 @@ class Resolver {
     visitClassStmt(stmt) {
         this.declare(stmt.name);
         this.define(stmt.name);
+
+        this.beginScope();
+        this.scopes[this.scopes.length - 1]["this"] = true;
+
+        for(var method of stmt.methods) {
+            this.resolveFunction(method, "method");
+        }
+
+        this.endScope();
+        
         return null;
     }
 
@@ -105,6 +116,11 @@ class Resolver {
         return null;
     }
 
+    visitGetExpr(expr) {
+        this.resolve(expr.object);
+        return null;
+    }
+
     visitGroupingExpr(expr) {
         this.resolve(expr.expression);
         return null;
@@ -117,6 +133,17 @@ class Resolver {
     visitLogicalExpr(expr) {
         this.resolve(expr.left);
         this.resolve(expr.right);
+        return null;
+    }
+
+    visitSetExpr(expr) {
+        this.resolve(expr.value)
+        this.resolve(expr.object);
+        return null;
+    }
+
+    visitThisExpr(expr) {
+        this.resolveLocal(expr, expr.keyword);
         return null;
     }
 

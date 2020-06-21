@@ -4,9 +4,12 @@ defineAst(outputDir, "Expr", [
     "Assign   : Token name, Expr value",
     "Binary   : Expr left, Token operator, Expr right",
     "Call     : Expr callee, Token paren, Expr[] args",
+    "Get      : Expr object, Token name",
     "Grouping : Expr expression",
     "Literal  : Object value",
     "Logical  : Expr left, Token operator, Expr right",
+    "Set      : Expr object, Token name, Expr value",
+    "This     : Token keyword",
     "Unary    : Token operator, Expr right",
     "Variable : Token name"
 ]);

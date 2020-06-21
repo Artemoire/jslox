@@ -6,6 +6,7 @@ const Env = require("../../vm/env");
 const Ex = require("../../vm/exs");
 const Callable = require("../../vm/callable");
 const LoxClass = require("../../vm/lox-class");
+const { LoxFunction } = require("../../vm/callable");
 
 class Interpreter {
 
@@ -64,7 +65,14 @@ class Interpreter {
      */
     visitClassStmt(stmt) {
         this.env.define(stmt.name.lexeme, null);
-        var klass = new LoxClass(stmt.name.lexeme);
+
+        var methods = {};
+        for(var method of stmt.methods) {
+            var fun = new LoxFunction(method, this.env);
+            methods[method.name.lexeme] = fun;
+        }
+
+        var klass = new LoxClass(stmt.name.lexeme, methods);
         this.env.assign(stmt.name, klass);
         return null;
     }
@@ -224,6 +232,25 @@ class Interpreter {
     }
 
     /**
+     * @param {Expr.Set} expr 
+     */
+    visitSetExpr(expr) {
+        var obj = this.evaluate(expr.object);
+
+        if (obj instanceof LoxClass.Instance) {
+            var value = this.evaluate(expr.value);
+            obj.set(expr.name, value);
+            return value;
+        }
+        
+        throw { token: expr.name, msg: `Only instances have fields.` };            
+    }
+
+    visitThisExpr(expr) {
+        return this.lookUpVariable(expr.keyword, expr);
+    }
+
+    /**
      * @param {Expr.Call} expr 
      */
     visitCallExpr(expr) {
@@ -243,6 +270,18 @@ class Interpreter {
         }
 
         return callee.call(this, args);
+    }
+
+    /**
+     * @param {Expr.Get} expr 
+     */
+    visitGetExpr(expr) {
+        var obj = this.evaluate(expr.object);
+        if (obj instanceof LoxClass.Instance) {
+            return obj.get(expr.name);
+        }
+
+        throw { token: expr.name, msg: `Only instances have properties` };
     }
 
     checkNumberOperand(operator, op) {

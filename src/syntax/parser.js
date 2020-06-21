@@ -254,8 +254,8 @@ class Parser {
     }
 
     /**
-     * assignment → IDENTIFIER "=" assignment
-     *            | logic_or ;
+     assignment → ( call "." )? IDENTIFIER "=" assignment
+     *          | logic_or ;
      */
     assignment() {
         var expr = this.logic_or();
@@ -267,6 +267,8 @@ class Parser {
             if (expr instanceof Expr.Variable) {
                 var name = expr.name;
                 return new Expr.Assign(name, value);
+            } else if (expr instanceof Expr.Get) {
+                return new Expr.Set(expr.object, expr.name, value);
             }
 
             this.error(equals, "Invalid assignment target.");
@@ -380,7 +382,7 @@ class Parser {
     }
 
     /**
-     * call → primary ( "(" arguments? ")" )* ;
+     * call → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
      */
     call() {
         var expr = this.primary();
@@ -388,6 +390,9 @@ class Parser {
         while (true) {
             if (this.match(TokenType.LEFT_PAREN)) {
                 expr = this.finishCall(expr);
+            } else if (this.match(TokenType.DOT)) {
+                var name = this.consume(TokenType.IDENTIFIER, "Expect property name after '.'.");
+                expr = new Expr.Get(expr, name);
             } else {
                 break;
             }
@@ -423,19 +428,15 @@ class Parser {
      *         | NUMBER | STRING
      *         | "(" expression ")" ;
      *         | IDENTIFIER
+     *         | "this"
      */
     primary() {
         if (this.match(TokenType.FALSE)) return new Expr.Literal(false);
         if (this.match(TokenType.TRUE)) return new Expr.Literal(true);
         if (this.match(TokenType.NIL)) return new Expr.Literal(null);
-
-        if (this.match(TokenType.NUMBER, TokenType.STRING)) {
-            return new Expr.Literal(this.previous().literal);
-        }
-
-        if (this.match(TokenType.IDENTIFIER)) {
-            return new Expr.Variable(this.previous());
-        }
+        if (this.match(TokenType.NUMBER, TokenType.STRING)) return new Expr.Literal(this.previous().literal);
+        if (this.match(TokenType.THIS)) return new Expr.This(this.previous());
+        if (this.match(TokenType.IDENTIFIER)) return new Expr.Variable(this.previous());
 
         if (this.match(TokenType.LEFT_PAREN)) {
             var expr = expression();
