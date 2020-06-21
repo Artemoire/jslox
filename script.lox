@@ -1,5 +1,4 @@
 class Cake {
-
   assignFlavor(flavor) {
     this.flavor = flavor;
   }

@@ -11,6 +11,7 @@ class Resolver {
         this.interpreter = interpreter;
         this.scopes = [];
         this.currentScopeKind = "global";
+        this.currentClass = "none";
     }
 
     visitBlockStmt(stmt) {
@@ -20,6 +21,8 @@ class Resolver {
     }
 
     visitClassStmt(stmt) {
+        var enclosingClass = this.currentClass;
+        this.currentClass = "class";     
         this.declare(stmt.name);
         this.define(stmt.name);
 
@@ -31,7 +34,9 @@ class Resolver {
         }
 
         this.endScope();
-        
+        this.currentClass = 0;
+
+        this.currentClass = enclosingClass;
         return null;
     }
 
@@ -143,6 +148,11 @@ class Resolver {
     }
 
     visitThisExpr(expr) {
+        if(this.currentClass == "none") {
+            utils.loxParseError(expr.keyword, "Cannot use 'this' keyword outside of a class.");
+            return null;
+        }
+
         this.resolveLocal(expr, expr.keyword);
         return null;
     }
