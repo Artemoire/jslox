@@ -27,10 +27,10 @@ class Env {
 
     /**
      * @param {number} dist 
-     * @param {Token} name 
+     * @param {string} name 
      */
     getAt(dist, name) {
-        return this.ancestor(dist).values[name.lexeme];
+        return this.ancestor(dist).values[name];
     }
 
     /**

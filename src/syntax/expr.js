@@ -178,6 +178,27 @@ class Set extends Expr {
 
 }
 
+class Super extends Expr {
+
+	/**
+	 * @param {Token} keyword
+	 * @param {Token} method
+	 */
+	constructor(keyword, method) {
+		super();
+		this.keyword = keyword;
+		this.method = method;
+	}
+
+	/**
+	 * @param {Visitor} visitor
+	 */
+	accept(visitor) {
+		return visitor.visitSuperExpr(this);
+	}
+
+}
+
 class This extends Expr {
 
 	/**
@@ -245,6 +266,7 @@ Expr.Grouping = Grouping;
 Expr.Literal = Literal;
 Expr.Logical = Logical;
 Expr.Set = Set;
+Expr.Super = Super;
 Expr.This = This;
 Expr.Unary = Unary;
 Expr.Variable = Variable;
@@ -273,6 +295,9 @@ class Visitor {
 	}
 
 	visitSetExpr(expr) {
+	}
+
+	visitSuperExpr(expr) {
 	}
 
 	visitThisExpr(expr) {

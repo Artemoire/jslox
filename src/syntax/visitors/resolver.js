@@ -27,11 +27,14 @@ class Resolver {
         this.declare(stmt.name);
         this.define(stmt.name);
 
-        if(stmt.superclass != null) {
+        if(stmt.superclass != null) {                        
             if (stmt.name.lexeme == stmt.superclass.name.lexeme) {
                 utils.loxParseError(stmt.superclass.name, "A class cannot inherit from itself.");
-            }
+            }            
+            this.currentClass = "subclass";
             this.resolve(stmt.superclass);
+            this.beginScope();
+            this.scopes[this.scopes.length - 1]["super"] = "true";
         }
 
         this.beginScope();
@@ -46,6 +49,9 @@ class Resolver {
         }
 
         this.endScope();
+        if (stmt.superclass != null) {
+            this.endScope();
+        }
         this.currentClass = 0;
 
         this.currentClass = enclosingClass;
@@ -161,6 +167,16 @@ class Resolver {
     visitSetExpr(expr) {
         this.resolve(expr.value)
         this.resolve(expr.object);
+        return null;
+    }
+
+    visitSuperExpr(expr) {
+        if (this.currentClass == "none") {
+            utils.loxParseError(expr.keyword, "Cannot use 'super' outside of a class.");
+        } else if (this.currentClass != "subclass") {
+            utils.loxParseError(expr.keyword, "Cannot use 'super' in a class with no superclass.");
+        }
+        this.resolveLocal(expr, expr.keyword);
         return null;
     }
 

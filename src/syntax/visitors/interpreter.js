@@ -74,6 +74,11 @@ class Interpreter {
 
         this.env.define(stmt.name.lexeme, null);
 
+        if (stmt.superclass != null){
+            this.env = new Env(this.env);
+            this.env.define("super", superclass);
+        }
+
         var methods = {};
         for(var method of stmt.methods) {
             var fun = new LoxFunction(method, this.env, method.name == "init");
@@ -81,6 +86,9 @@ class Interpreter {
         }
 
         var klass = new LoxClass(stmt.name.lexeme, superclass, methods);
+        if (superclass != null) {
+            this.env = this.env.enclosing;
+        }
         this.env.assign(stmt.name, klass);
         return null;
     }
@@ -218,7 +226,7 @@ class Interpreter {
     lookUpVariable(name, expr) {
         var dist = this.locals.get(expr);
         if (typeof dist != "undefined") {
-            return this.env.getAt(dist, name);
+            return this.env.getAt(dist, name.lexeme);
         } else {
             return this.globals.get(name);
         }
@@ -252,6 +260,18 @@ class Interpreter {
         }
         
         throw { token: expr.name, msg: `Only instances have fields.` };            
+    }
+
+    visitSuperExpr(expr) {
+        var dist = this.locals.get(expr);
+        var superclass = this.env.getAt(dist, "super");
+        var obj = this.env.getAt(dist - 1, "this");
+
+        var method = superclass.findMethod(expr.method.lexeme);
+        if (method == null) {
+            throw { token: expr.method, msg: `Undefined property '${expr.method.lexeme}'.` };
+        }
+        return method.bind(obj);
     }
 
     visitThisExpr(expr) {

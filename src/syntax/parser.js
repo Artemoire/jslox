@@ -432,11 +432,11 @@ class Parser {
     // }
 
     /**
-     * primary → "true" | "false" | "nil"
+     * primary → "true" | "false" | "nil" | "this"
      *         | NUMBER | STRING
      *         | "(" expression ")" ;
      *         | IDENTIFIER
-     *         | "this"
+     *         | "super" . IDENTIFIER
      */
     primary() {
         if (this.match(TokenType.FALSE)) return new Expr.Literal(false);
@@ -445,6 +445,12 @@ class Parser {
         if (this.match(TokenType.NUMBER, TokenType.STRING)) return new Expr.Literal(this.previous().literal);
         if (this.match(TokenType.THIS)) return new Expr.This(this.previous());
         if (this.match(TokenType.IDENTIFIER)) return new Expr.Variable(this.previous());
+        if  (this.match(TokenType.SUPER)) {
+            var keyword = this.previous();
+            this.consume(TokenType.DOT, "Expect '.' after 'super'.");
+            var method = this.consume(TokenType.IDENTIFIER, "Expect superclass method name.");
+            return new Expr.Super(keyword, method);
+        }
 
         if (this.match(TokenType.LEFT_PAREN)) {
             var expr = expression();
