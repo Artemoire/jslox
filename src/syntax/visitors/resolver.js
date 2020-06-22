@@ -1,6 +1,7 @@
 const Interpreter = require('./interpreter');
 const utils = require('../../utils');
 const { THIS } = require('../../token-type');
+const { loxParseError } = require('../../utils');
 
 class Resolver {
 
@@ -25,6 +26,13 @@ class Resolver {
         this.currentClass = "class";     
         this.declare(stmt.name);
         this.define(stmt.name);
+
+        if(stmt.superclass != null) {
+            if (stmt.name.lexeme == stmt.superclass.name.lexeme) {
+                utils.loxParseError(stmt.superclass.name, "A class cannot inherit from itself.");
+            }
+            this.resolve(stmt.superclass);
+        }
 
         this.beginScope();
         this.scopes[this.scopes.length - 1]["this"] = true;

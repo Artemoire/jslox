@@ -3,12 +3,16 @@ const Token = require('../token');
 
 class LoxClass extends Callable {
 
+
+    
     /**
      * @param {string} name 
-     * @param {any} methods
+     * @param {LoxClass} superclass 
+     * @param {any[]} methods 
      */
-    constructor(name, methods) {
+    constructor(name, superclass, methods) {
         super();
+        this.superclass = superclass;
         this.name = name;
         this.methods = methods;
     }
@@ -19,6 +23,10 @@ class LoxClass extends Callable {
     findMethod(name) {
         if(typeof this.methods[name] != "undefined") {
             return this.methods[name];
+        }
+
+        if (this.superclass != null) {
+            return this.superclass.findMethod(name);
         }
 
         return null;

@@ -30,11 +30,13 @@ class Class extends Stmt {
 
 	/**
 	 * @param {Token} name
+	 * @param {Expr.Variable} superclass
 	 * @param {Stmt.Function[]} methods
 	 */
-	constructor(name, methods) {
+	constructor(name, superclass, methods) {
 		super();
 		this.name = name;
+		this.superclass = superclass;
 		this.methods = methods;
 	}
 

@@ -48,10 +48,18 @@ class Parser {
 
 
     /**
-     * classDecl   → "class" IDENTIFIER "{" function* "}" ;
+     * classDecl → "class" IDENTIFIER ( "<" IDENTIFIER )?
+     *             "{" function* "}" ;
      */
     classDeclaration() {
         var name = this.consume(TokenType.IDENTIFIER, "Expect class name.");
+
+        var superclass = null;
+        if (this.match(TokenType.LESS)) {
+            this.consume(TokenType.IDENTIFIER, "Expect superclass name.");
+            superclass = new Expr.Variable(this.previous());
+        }
+
         this.consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
 
         var methods = [];
@@ -61,7 +69,7 @@ class Parser {
 
         this.consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
 
-        return new Stmt.Class(name, methods);
+        return new Stmt.Class(name, superclass, methods);
     }
 
     /**

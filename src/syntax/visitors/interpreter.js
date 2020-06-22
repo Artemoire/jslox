@@ -64,6 +64,14 @@ class Interpreter {
      * @param {Stmt.Class} stmt 
      */
     visitClassStmt(stmt) {
+        var superclass = null;
+        if (stmt.superclass != null) {
+            superclass = this.evaluate(stmt.superclass);
+            if  (!(superclass instanceof LoxClass)) {
+                throw { token: stmt.superclass.name, msg: "Superclass must be a class." };
+            }
+        }
+
         this.env.define(stmt.name.lexeme, null);
 
         var methods = {};
@@ -72,7 +80,7 @@ class Interpreter {
             methods[method.name.lexeme] = fun;
         }
 
-        var klass = new LoxClass(stmt.name.lexeme, methods);
+        var klass = new LoxClass(stmt.name.lexeme, superclass, methods);
         this.env.assign(stmt.name, klass);
         return null;
     }
